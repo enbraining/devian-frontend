@@ -6,28 +6,41 @@ import { Article } from "@/lib/supabase";
 import ArticleCard from "./ArticleCard";
 import BlogFilter from "./BlogFilter";
 import TagFilter from "./TagFilter";
+import { cacheGet, cacheSet } from "@/lib/client-cache";
 
-interface TagItem {
-  tag: string;
-  count: number;
+interface TagItem { tag: string; count: number; }
+
+interface CachedState {
+  articles: Article[];
+  total: number;
+  page: number;
+  selectedBlog: string;
+  selectedTag: string | null;
+  tags: TagItem[];
 }
 
+const CACHE_KEY = "article-feed";
+
 export default function ArticleFeed() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [selectedBlog, setSelectedBlog] = useState("all");
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [tags, setTags] = useState<TagItem[]>([]);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const cached = cacheGet<CachedState>(CACHE_KEY);
+
+  const [articles, setArticles] = useState<Article[]>(cached?.articles ?? []);
+  const [selectedBlog, setSelectedBlog] = useState(cached?.selectedBlog ?? "all");
+  const [selectedTag, setSelectedTag] = useState<string | null>(cached?.selectedTag ?? null);
+  const [tags, setTags] = useState<TagItem[]>(cached?.tags ?? []);
+  const [page, setPage] = useState(cached?.page ?? 1);
+  const [total, setTotal] = useState(cached?.total ?? 0);
   const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(!cached);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // 태그 목록 — 캐시 없을 때만 fetch
   useEffect(() => {
+    if (cached?.tags?.length) return;
     fetch("/api/tags")
       .then((r) => r.json())
       .then((d) => setTags(d.tags ?? []));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchArticles = useCallback(
     async (blogId: string, tag: string | null, p: number, append = false) => {
@@ -38,26 +51,38 @@ export default function ArticleFeed() {
         if (tag) params.set("tag", tag);
         const res = await fetch(`/api/articles?${params}`);
         const data = await res.json();
-        if (append) {
-          setArticles((prev) => [...prev, ...(data.articles ?? [])]);
-        } else {
-          setArticles(data.articles ?? []);
-        }
-        setTotal(data.total ?? 0);
+        const newArticles = data.articles ?? [];
+        const newTotal = data.total ?? 0;
+
+        setArticles((prev) => {
+          const next = append ? [...prev, ...newArticles] : newArticles;
+          cacheSet<CachedState>(CACHE_KEY, {
+            articles: next, total: newTotal, page: p,
+            selectedBlog: blogId, selectedTag: tag, tags,
+          });
+          return next;
+        });
+        setTotal(newTotal);
       } finally {
         setLoading(false);
         setInitialLoad(false);
       }
     },
-    []
+    [tags]
   );
 
+  // 필터가 바뀌면 재요청 (캐시된 상태와 다를 때만)
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (cached) return; // 캐시 있으면 최초 fetch 건너뜀
+    }
     setPage(1);
     fetchArticles(selectedBlog, selectedTag, 1);
-  }, [selectedBlog, selectedTag, fetchArticles]);
+  }, [selectedBlog, selectedTag]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // IntersectionObserver: sentinel이 뷰포트에 들어오면 자동 로드
+  // IntersectionObserver
   const hasMore = articles.length < total;
   const hasMoreRef = useRef(hasMore);
   const loadingRef = useRef(loading);
@@ -69,7 +94,6 @@ export default function ArticleFeed() {
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMoreRef.current && !loadingRef.current) {
@@ -80,7 +104,6 @@ export default function ArticleFeed() {
       },
       { rootMargin: "200px" }
     );
-
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [selectedBlog, selectedTag, fetchArticles]);
@@ -114,8 +137,6 @@ export default function ArticleFeed() {
               <ArticleCard key={article.id ?? article.url} article={article} />
             ))}
           </div>
-
-          {/* sentinel + 더 보기 버튼 */}
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center pt-2">
               <button

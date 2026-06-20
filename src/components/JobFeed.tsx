@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { JOB_SOURCES } from "@/lib/job-sources";
 import { IconBriefcase, IconMapPin, IconBuilding, IconExternalLink } from "@tabler/icons-react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { cacheGet, cacheSet } from "@/lib/client-cache";
 
 interface Job {
   id: string;
@@ -18,13 +19,17 @@ interface Job {
   posted_at: string | null;
 }
 
+interface CachedState { jobs: Job[]; total: number; page: number; selectedCompany: string; }
+
 export default function JobFeed() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState("all");
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const cached = cacheGet<CachedState>("job-feed");
+
+  const [jobs, setJobs] = useState<Job[]>(cached?.jobs ?? []);
+  const [selectedCompany, setSelectedCompany] = useState(cached?.selectedCompany ?? "all");
+  const [page, setPage] = useState(cached?.page ?? 1);
+  const [total, setTotal] = useState(cached?.total ?? 0);
   const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(!cached);
 
   const fetchJobs = useCallback(async (company: string, p: number, append = false) => {
     setLoading(true);
@@ -33,22 +38,29 @@ export default function JobFeed() {
       if (company !== "all") params.set("company", company);
       const res = await fetch(`/api/jobs?${params}`);
       const data = await res.json();
-      if (append) {
-        setJobs((prev) => [...prev, ...(data.jobs ?? [])]);
-      } else {
-        setJobs(data.jobs ?? []);
-      }
-      setTotal(data.total ?? 0);
+      const newJobs = data.jobs ?? [];
+      const newTotal = data.total ?? 0;
+      setJobs((prev) => {
+        const next = append ? [...prev, ...newJobs] : newJobs;
+        cacheSet<CachedState>("job-feed", { jobs: next, total: newTotal, page: p, selectedCompany: company });
+        return next;
+      });
+      setTotal(newTotal);
     } finally {
       setLoading(false);
       setInitialLoad(false);
     }
   }, []);
 
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (cached) return;
+    }
     setPage(1);
     fetchJobs(selectedCompany, 1);
-  }, [selectedCompany, fetchJobs]);
+  }, [selectedCompany]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLoadMore = () => {
     const next = page + 1;

@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconSun, IconMoon } from "@tabler/icons-react";
+import { createClient } from "@/lib/supabase-browser";
+import type { User } from "@supabase/supabase-js";
+import Image from "next/image";
 
 const NAV = [
   { href: "/", label: "아티클" },
@@ -18,7 +21,10 @@ function isActive(href: string, pathname: string) {
 
 export default function Header() {
   const [dark, setDark] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [username, setUsername] = useState<string>("");
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -28,11 +34,37 @@ export default function Header() {
     document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) fetchUsername(data.user.id, supabase);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) fetchUsername(session.user.id, supabase);
+      else setUsername("");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function fetchUsername(userId: string, supabase: ReturnType<typeof createClient>) {
+    const { data } = await supabase.from("blog_users").select("username").eq("id", userId).single();
+    if (data) setUsername(data.username);
+  }
+
   function toggleDark() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
+  }
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -68,8 +100,8 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Right: dark mode */}
-        <div className="justify-self-end">
+        {/* Right: dark mode + auth */}
+        <div className="justify-self-end flex items-center gap-2">
           <button
             onClick={toggleDark}
             aria-label="다크모드 전환"
@@ -77,6 +109,41 @@ export default function Header() {
           >
             {dark ? <IconSun size={16} stroke={1.5} /> : <IconMoon size={16} stroke={1.5} />}
           </button>
+
+          {user ? (
+            <div className="relative group">
+              <button className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-zinc-300 ring-2 ring-gray-200 dark:ring-zinc-700 overflow-hidden">
+                {username?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase()}
+              </button>
+              <div className="absolute right-0 top-10 w-44 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800">
+                  대시보드
+                </Link>
+                <Link href="/blog/write" className="block px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800">
+                  글쓰기
+                </Link>
+                {username && (
+                  <Link href={`/blog/u/${username}`} className="block px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800">
+                    내 블로그
+                  </Link>
+                )}
+                <hr className="my-1 border-gray-100 dark:border-zinc-800" />
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                >
+                  로그아웃
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link
+              href="/blog/login"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-80 transition-opacity"
+            >
+              로그인
+            </Link>
+          )}
         </div>
       </div>
     </header>

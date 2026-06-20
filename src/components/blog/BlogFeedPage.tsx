@@ -1,27 +1,39 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PostCard from "./PostCard";
 import type { PostSummary } from "@/lib/blog-db";
+import { cacheGet, cacheSet } from "@/lib/client-cache";
 
 type Tab = "latest" | "popular";
 
+interface CachedState { tab: Tab; posts: PostSummary[]; }
+
 export default function BlogFeedPage() {
-  const [tab, setTab] = useState<Tab>("latest");
-  const [posts, setPosts] = useState<PostSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = cacheGet<CachedState>("blog-feed");
+
+  const [tab, setTab] = useState<Tab>(cached?.tab ?? "latest");
+  const [posts, setPosts] = useState<PostSummary[]>(cached?.posts ?? []);
+  const [loading, setLoading] = useState(!cached);
 
   const fetchPosts = useCallback(async (t: Tab) => {
     setLoading(true);
     const res = await fetch(`/api/blog/posts?tab=${t}`);
     const data = await res.json();
-    setPosts(data.posts ?? []);
+    const next = data.posts ?? [];
+    setPosts(next);
+    cacheSet<CachedState>("blog-feed", { tab: t, posts: next });
     setLoading(false);
   }, []);
 
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (cached) return;
+    }
     fetchPosts(tab);
-  }, [tab, fetchPosts]);
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,9 +67,7 @@ export default function BlogFeedPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+          {posts.map((post) => <PostCard key={post.id} post={post} />)}
         </div>
       )}
     </div>
