@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { JOB_SOURCES } from "@/lib/job-sources";
 import { IconBriefcase, IconMapPin, IconBuilding, IconExternalLink } from "@tabler/icons-react";
+import { JobCardSkeleton } from "./skeletons";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -102,9 +103,7 @@ export default function JobFeed() {
 
       {initialLoad ? (
         <div className="flex flex-col gap-2">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl bg-gray-100 dark:bg-zinc-800 animate-pulse" />
-          ))}
+          {Array.from({ length: 8 }).map((_, i) => <JobCardSkeleton key={i} />)}
         </div>
       ) : jobs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">

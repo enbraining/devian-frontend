@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { IconMailboxOff, IconLoader2, IconLayoutGrid, IconLayoutList } from "@tabler/icons-react";
+import { ArticleCardSkeleton, ArticleCardListSkeleton } from "./skeletons";
 import { Article } from "@/lib/supabase";
 import ArticleCard from "./ArticleCard";
 import BlogFilter from "./BlogFilter";
@@ -120,11 +121,15 @@ export default function ArticleFeed() {
       <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
 
       {initialLoad ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-64 rounded-xl bg-gray-100 dark:bg-zinc-800 animate-pulse" />
-          ))}
-        </div>
+        viewMode === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => <ArticleCardSkeleton key={i} />)}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 8 }).map((_, i) => <ArticleCardListSkeleton key={i} />)}
+          </div>
+        )
       ) : articles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
           <IconMailboxOff size={40} stroke={1.5} />

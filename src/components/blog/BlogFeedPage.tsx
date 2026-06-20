@@ -5,6 +5,7 @@ import PostCard from "./PostCard";
 import type { PostSummary } from "@/lib/blog-db";
 import { cacheGet, cacheSet } from "@/lib/client-cache";
 import { IconLayoutGrid, IconLayoutList } from "@tabler/icons-react";
+import { PostCardSkeleton, PostCardGridSkeleton } from "../skeletons";
 
 type Tab = "latest" | "popular";
 
@@ -74,11 +75,15 @@ export default function BlogFeedPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-36 rounded-2xl bg-gray-100 dark:bg-zinc-900 animate-pulse" />
-          ))}
-        </div>
+        viewMode === "list" ? (
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 5 }).map((_, i) => <PostCardSkeleton key={i} />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => <PostCardGridSkeleton key={i} />)}
+          </div>
+        )
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
           <p className="text-sm">아직 게시글이 없습니다.</p>
