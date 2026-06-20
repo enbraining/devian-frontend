@@ -3,7 +3,6 @@ import { BLOG_SOURCES, BlogSource } from "./blogs";
 import { getSupabaseServer } from "./supabase-server";
 import { Article } from "./supabase";
 import { autoTag } from "./tagger";
-import OpenAI from "openai";
 
 type RssItem = {
   title?: string;
@@ -85,44 +84,6 @@ function extractSummary(item: RssItem): string | null {
   return null;
 }
 
-function isEnglish(text: string): boolean {
-  const korean = (text.match(/[가-힣]/g) ?? []).length;
-  const ascii = (text.match(/[a-zA-Z]/g) ?? []).length;
-  return ascii > korean * 2 && ascii > 10;
-}
-
-let openaiClient: OpenAI | null = null;
-function getOpenAI(): OpenAI {
-  if (!openaiClient) openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  return openaiClient;
-}
-
-async function translateToKorean(title: string, summary: string | null): Promise<{ title: string; summary: string | null }> {
-  if (!process.env.OPENAI_API_KEY) return { title, summary };
-  if (!isEnglish(title)) return { title, summary };
-  try {
-    const input = summary ? `제목: ${title}\n요약: ${summary}` : `제목: ${title}`;
-    const res = await getOpenAI().chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "기술 블로그 글의 제목과 요약을 자연스러운 한국어로 번역해줘. JSON으로만 응답해: {\"title\":\"...\",\"summary\":\"...\"}. summary가 없으면 null로.",
-        },
-        { role: "user", content: input },
-      ],
-      response_format: { type: "json_object" },
-      max_tokens: 300,
-    });
-    const parsed = JSON.parse(res.choices[0].message.content ?? "{}");
-    return {
-      title: parsed.title ?? title,
-      summary: parsed.summary ?? summary,
-    };
-  } catch {
-    return { title, summary };
-  }
-}
 
 async function fetchRssBlog(source: BlogSource): Promise<Omit<Article, "id" | "created_at">[]> {
   const baseUrl = source.rssUrl!;
@@ -135,12 +96,11 @@ async function fetchRssBlog(source: BlogSource): Promise<Omit<Article, "id" | "c
         let thumbnail = extractThumbnail(item, baseUrl);
         if (!thumbnail && url) thumbnail = await fetchOgImage(url);
 
-        const rawSummary = extractSummary(item);
-        const { title, summary } = await translateToKorean(item.title ?? "제목 없음", rawSummary);
+        const summary = extractSummary(item);
 
         return {
           blog_id: source.id,
-          title,
+          title: item.title ?? "제목 없음",
           url,
           published_at: item.pubDate
             ? new Date(item.pubDate).toISOString()
@@ -149,7 +109,7 @@ async function fetchRssBlog(source: BlogSource): Promise<Omit<Article, "id" | "c
             : new Date().toISOString(),
           summary,
           thumbnail,
-          tags: await autoTag(title, summary),
+          tags: await autoTag(item.title ?? "", summary),
         };
       })
     );
