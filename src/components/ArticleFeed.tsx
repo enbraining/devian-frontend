@@ -34,6 +34,21 @@ export default function ArticleFeed() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(!cached);
   const [filterOpen, setFilterOpen] = useState(false);
+  // 모달 내 임시 상태 — 적용 버튼 누를 때만 실제 필터에 반영
+  const [pendingBlog, setPendingBlog] = useState(selectedBlog);
+  const [pendingTag, setPendingTag] = useState<string | null>(selectedTag);
+
+  // 모달 열릴 때 현재 필터로 초기화 + body 스크롤 잠금
+  useEffect(() => {
+    if (filterOpen) {
+      setPendingBlog(selectedBlog);
+      setPendingTag(selectedTag);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [filterOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   const [viewMode, setViewMode] = useState<"grid" | "list" | "large">(() => {
     if (typeof window === "undefined") return "grid";
     return (localStorage.getItem("article-view") as "grid" | "list" | "large") ?? "grid";
@@ -145,10 +160,14 @@ export default function ArticleFeed() {
                 <IconX size={14} stroke={2} />
               </button>
             </div>
-            <BlogFilter selected={selectedBlog} onChange={(id) => { handleBlogChange(id); }} />
-            <TagFilter tags={tags} selected={selectedTag} onChange={(t) => { setSelectedTag(t); }} />
+            <BlogFilter selected={pendingBlog} onChange={(id) => { setPendingBlog(id); setPendingTag(null); }} />
+            <TagFilter tags={tags} selected={pendingTag} onChange={setPendingTag} />
             <button
-              onClick={() => setFilterOpen(false)}
+              onClick={() => {
+                handleBlogChange(pendingBlog);
+                setSelectedTag(pendingTag);
+                setFilterOpen(false);
+              }}
               className="w-full py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold mt-1"
             >
               적용
