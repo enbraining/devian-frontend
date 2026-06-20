@@ -197,7 +197,7 @@ export default function Header() {
               </div>
             </div>
           ) : (
-            <Link href="/blog/login" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-80 transition-opacity">
+            <Link href="/blog/login" className="hidden sm:block px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-80 transition-opacity">
               로그인
             </Link>
           )}

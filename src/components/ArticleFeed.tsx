@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { IconMailboxOff, IconLoader2, IconLayoutGrid, IconLayoutList, IconLayoutRows } from "@tabler/icons-react";
+import { IconMailboxOff, IconLoader2, IconLayoutGrid, IconLayoutList, IconLayoutRows, IconFilter } from "@tabler/icons-react";
 import { ArticleCardSkeleton, ArticleCardListSkeleton, ArticleCardLargeSkeleton } from "./skeletons";
 import { Article } from "@/lib/supabase";
 import ArticleCard from "./ArticleCard";
@@ -33,6 +33,7 @@ export default function ArticleFeed() {
   const [total, setTotal] = useState(cached?.total ?? 0);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(!cached);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list" | "large">(() => {
     if (typeof window === "undefined") return "grid";
     return (localStorage.getItem("article-view") as "grid" | "list" | "large") ?? "grid";
@@ -123,10 +124,37 @@ export default function ArticleFeed() {
     setSelectedTag(null);
   };
 
+  const hasFilter = selectedBlog !== "all" || selectedTag !== null;
+
   return (
     <div className="flex flex-col gap-5">
-      <BlogFilter selected={selectedBlog} onChange={handleBlogChange} />
-      <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
+      {/* 데스크탑: 항상 표시 */}
+      <div className="hidden sm:flex flex-col gap-3">
+        <BlogFilter selected={selectedBlog} onChange={handleBlogChange} />
+        <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
+      </div>
+
+      {/* 모바일: 필터 버튼 + 토글 */}
+      <div className="sm:hidden flex flex-col gap-3">
+        <button
+          onClick={() => setFilterOpen((v) => !v)}
+          className={`flex items-center gap-2 self-start px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${
+            hasFilter
+              ? "border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900"
+              : "border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 bg-white dark:bg-zinc-900"
+          }`}
+        >
+          <IconFilter size={14} stroke={1.5} />
+          필터{hasFilter ? " ·" : ""}
+          {selectedBlog !== "all" && <span className="font-semibold">{selectedBlog}</span>}
+        </button>
+        {filterOpen && (
+          <div className="flex flex-col gap-3">
+            <BlogFilter selected={selectedBlog} onChange={handleBlogChange} />
+            <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
+          </div>
+        )}
+      </div>
 
       {initialLoad ? (
         viewMode === "grid" ? (
