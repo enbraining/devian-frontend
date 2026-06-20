@@ -104,7 +104,8 @@ export default function Header() {
         {/* Left: logo */}
         <Link href="/" className="justify-self-start">
           <span className="text-base font-bold tracking-widest text-gray-900 dark:text-white select-none" style={{ fontFamily: "var(--font-space-mono)" }}>
-            DEVIAN
+            <span className="sm:hidden">D_</span>
+            <span className="hidden sm:inline">DEVIAN</span>
           </span>
         </Link>
 
