@@ -7,7 +7,7 @@ import { IconHeart, IconMessage } from "@tabler/icons-react";
 
 interface Props {
   post: PostSummary;
-  layout?: "grid" | "list";
+  layout?: "grid" | "list" | "large";
 }
 
 export default function PostCard({ post, layout = "list" }: Props) {
@@ -36,20 +36,14 @@ export default function PostCard({ post, layout = "list" }: Props) {
               </>
             )}
           </div>
-          <h2 className="text-sm font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 flex-1">
-            {post.title}
-          </h2>
+          <h2 className="text-sm font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 flex-1">{post.title}</h2>
           {post.excerpt && (
-            <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
-              {post.excerpt}
-            </p>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">{post.excerpt}</p>
           )}
           <div className="flex items-center justify-between mt-auto pt-2">
             <div className="flex gap-1 flex-wrap">
               {post.tags.slice(0, 2).map((tag) => (
-                <span key={tag.slug} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs text-gray-500 dark:text-zinc-400">
-                  {tag.name}
-                </span>
+                <span key={tag.slug} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs text-gray-500 dark:text-zinc-400">{tag.name}</span>
               ))}
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-300 dark:text-zinc-600">
@@ -62,6 +56,50 @@ export default function PostCard({ post, layout = "list" }: Props) {
     );
   }
 
+  if (layout === "large") {
+    return (
+      <article className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 hover:border-gray-200 dark:hover:border-zinc-700 hover:shadow-sm transition-all overflow-hidden">
+        <Link href={`/blog/${post.slug}`} className="flex">
+          <div className="flex-1 flex flex-col gap-3 p-6">
+            <div className="flex items-center gap-2">
+              {post.author.avatar_url && (
+                <Image src={post.author.avatar_url} alt={post.author.name ?? post.author.username} width={24} height={24} className="rounded-full" />
+              )}
+              <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{post.author.name ?? post.author.username}</span>
+              {timeAgo && (
+                <>
+                  <span className="text-gray-200 dark:text-zinc-700">·</span>
+                  <span className="text-xs text-gray-400 dark:text-zinc-500">{timeAgo}</span>
+                </>
+              )}
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">{post.title}</h2>
+            {post.excerpt && (
+              <p className="text-sm text-gray-500 dark:text-zinc-400 line-clamp-3 leading-relaxed">{post.excerpt}</p>
+            )}
+            <div className="flex items-center justify-between mt-auto pt-2">
+              <div className="flex gap-1.5 flex-wrap">
+                {post.tags.slice(0, 4).map((tag) => (
+                  <span key={tag.slug} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs text-gray-500 dark:text-zinc-400">{tag.name}</span>
+                ))}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-gray-300 dark:text-zinc-600 flex-shrink-0 ml-4">
+                <span className="flex items-center gap-1"><IconHeart size={13} stroke={1.5} />{post.like_count}</span>
+                <span className="flex items-center gap-1"><IconMessage size={13} stroke={1.5} />{post.comment_count}</span>
+              </div>
+            </div>
+          </div>
+          {post.cover_url && (
+            <div className="flex-shrink-0 w-52 bg-gray-100 dark:bg-zinc-800 overflow-hidden">
+              <Image src={post.cover_url} alt={post.title} width={208} height={200} className="object-cover w-full h-full" />
+            </div>
+          )}
+        </Link>
+      </article>
+    );
+  }
+
+  // list (compact)
   return (
     <article className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 hover:border-gray-200 dark:hover:border-zinc-700 hover:shadow-sm transition-all overflow-hidden">
       <Link href={`/blog/${post.slug}`} className="block p-5">
@@ -79,20 +117,14 @@ export default function PostCard({ post, layout = "list" }: Props) {
                 </>
               )}
             </div>
-            <h2 className="text-base font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">
-              {post.title}
-            </h2>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">{post.title}</h2>
             {post.excerpt && (
-              <p className="text-sm text-gray-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
-                {post.excerpt}
-              </p>
+              <p className="text-sm text-gray-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">{post.excerpt}</p>
             )}
             <div className="flex items-center gap-3 mt-1">
               <div className="flex gap-1.5 flex-1 flex-wrap">
                 {post.tags.slice(0, 4).map((tag) => (
-                  <span key={tag.slug} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs text-gray-500 dark:text-zinc-400">
-                    {tag.name}
-                  </span>
+                  <span key={tag.slug} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs text-gray-500 dark:text-zinc-400">{tag.name}</span>
                 ))}
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-300 dark:text-zinc-600 flex-shrink-0">

@@ -29,7 +29,7 @@ export function ArticleCardSkeleton() {
   );
 }
 
-// 아티클 카드 — 리스트
+// 아티클 카드 — 컴팩트 리스트
 export function ArticleCardListSkeleton() {
   return (
     <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 p-4">
@@ -50,7 +50,32 @@ export function ArticleCardListSkeleton() {
   );
 }
 
-// 블로그 포스트 카드 — 리스트
+// 아티클 카드 — 큰 리스트
+export function ArticleCardLargeSkeleton() {
+  return (
+    <div className="flex gap-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden p-5">
+      <S className="flex-shrink-0 w-48 h-36 rounded-xl" />
+      <div className="flex-1 flex flex-col gap-3 py-1">
+        <div className="flex items-center gap-2">
+          <S className="w-4 h-4 rounded-sm" />
+          <S className="w-20 h-3" />
+          <S className="w-14 h-3" />
+        </div>
+        <S className="w-full h-5" />
+        <S className="w-4/5 h-5" />
+        <S className="w-full h-3" />
+        <S className="w-3/4 h-3" />
+        <div className="flex gap-1 mt-auto">
+          <S className="w-10 h-4 rounded" />
+          <S className="w-10 h-4 rounded" />
+          <S className="w-10 h-4 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 블로그 포스트 카드 — 컴팩트 리스트
 export function PostCardSkeleton() {
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5">
@@ -91,6 +116,31 @@ export function PostCardGridSkeleton() {
         <S className="w-full h-3" />
         <S className="w-2/3 h-3" />
       </div>
+    </div>
+  );
+}
+
+// 블로그 포스트 카드 — 큰 리스트
+export function PostCardLargeSkeleton() {
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex gap-0">
+      <div className="flex-1 flex flex-col gap-3 p-6">
+        <div className="flex items-center gap-2">
+          <S className="w-6 h-6 rounded-full" />
+          <S className="w-24 h-3" />
+          <S className="w-16 h-3" />
+        </div>
+        <S className="w-full h-6" />
+        <S className="w-4/5 h-6" />
+        <S className="w-full h-3" />
+        <S className="w-full h-3" />
+        <S className="w-3/4 h-3" />
+        <div className="flex gap-1.5 mt-auto pt-2">
+          <S className="w-14 h-5 rounded-md" />
+          <S className="w-14 h-5 rounded-md" />
+        </div>
+      </div>
+      <S className="flex-shrink-0 w-52 h-auto rounded-none" />
     </div>
   );
 }

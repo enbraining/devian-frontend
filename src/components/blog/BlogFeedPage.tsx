@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import PostCard from "./PostCard";
 import type { PostSummary } from "@/lib/blog-db";
 import { cacheGet, cacheSet } from "@/lib/client-cache";
-import { IconLayoutGrid, IconLayoutList } from "@tabler/icons-react";
-import { PostCardSkeleton, PostCardGridSkeleton } from "../skeletons";
+import { IconLayoutGrid, IconLayoutList, IconLayoutRows } from "@tabler/icons-react";
+import { PostCardSkeleton, PostCardGridSkeleton, PostCardLargeSkeleton } from "../skeletons";
 
 type Tab = "latest" | "popular";
 
@@ -17,7 +17,7 @@ export default function BlogFeedPage() {
   const [tab, setTab] = useState<Tab>(cached?.tab ?? "latest");
   const [posts, setPosts] = useState<PostSummary[]>(cached?.posts ?? []);
   const [loading, setLoading] = useState(!cached);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "large">("list");
 
   const fetchPosts = useCallback(async (t: Tab) => {
     setLoading(true);
@@ -57,31 +57,35 @@ export default function BlogFeedPage() {
           ))}
         </div>
         <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
-          <button
-            onClick={() => setViewMode("grid")}
-            className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-            title="그리드"
-          >
-            <IconLayoutGrid size={14} stroke={1.5} />
-          </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-            title="리스트"
-          >
-            <IconLayoutList size={14} stroke={1.5} />
-          </button>
+          {([
+            { mode: "grid", icon: IconLayoutGrid, label: "그리드" },
+            { mode: "list", icon: IconLayoutList, label: "리스트" },
+            { mode: "large", icon: IconLayoutRows, label: "큰 리스트" },
+          ] as const).map(({ mode, icon: Icon, label }) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === mode ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+              title={label}
+            >
+              <Icon size={14} stroke={1.5} />
+            </button>
+          ))}
         </div>
       </div>
 
       {loading ? (
-        viewMode === "list" ? (
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 5 }).map((_, i) => <PostCardSkeleton key={i} />)}
-          </div>
-        ) : (
+        viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => <PostCardGridSkeleton key={i} />)}
+          </div>
+        ) : viewMode === "large" ? (
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 4 }).map((_, i) => <PostCardLargeSkeleton key={i} />)}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 5 }).map((_, i) => <PostCardSkeleton key={i} />)}
           </div>
         )
       ) : posts.length === 0 ? (
@@ -89,7 +93,7 @@ export default function BlogFeedPage() {
           <p className="text-sm">아직 게시글이 없습니다.</p>
         </div>
       ) : (
-        <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-4"}>
+        <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"}>
           {posts.map((post) => <PostCard key={post.id} post={post} layout={viewMode} />)}
         </div>
       )}
