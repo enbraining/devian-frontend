@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconSun, IconMoon } from "@tabler/icons-react";
 import { createClient } from "@/lib/supabase-browser";
 import type { User } from "@supabase/supabase-js";
-import Image from "next/image";
 
 const NAV = [
   { href: "/", label: "아티클" },
@@ -25,6 +24,23 @@ export default function Header() {
   const [username, setUsername] = useState<string>("");
   const pathname = usePathname();
   const router = useRouter();
+
+  // 슬라이딩 인디케이터
+  const navRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const activeEl = nav.querySelector<HTMLElement>("[data-active='true']");
+    if (activeEl) {
+      setIndicatorStyle({
+        left: activeEl.offsetLeft,
+        width: activeEl.offsetWidth,
+        opacity: 1,
+      });
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -80,24 +96,39 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Center: segmented nav */}
-        <nav className="justify-self-center flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-full px-1 py-1">
-          {NAV.map(({ href, label }) => {
-            const active = isActive(href, pathname);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                  active
-                    ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm"
-                    : "text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300"
-                }`}
-              >
-                {label}
-              </Link>
-            );
-          })}
+        {/* Center: segmented nav with sliding indicator */}
+        <nav className="justify-self-center">
+          <div
+            ref={navRef}
+            className="relative flex items-center gap-0 bg-gray-100 dark:bg-zinc-900 rounded-full px-1 py-1"
+          >
+            {/* 슬라이딩 인디케이터 */}
+            <span
+              className="absolute top-1 bottom-1 rounded-full bg-white dark:bg-zinc-800 shadow-sm transition-all duration-200 ease-out pointer-events-none"
+              style={{
+                left: indicatorStyle.left,
+                width: indicatorStyle.width,
+                opacity: indicatorStyle.opacity,
+              }}
+            />
+            {NAV.map(({ href, label }) => {
+              const active = isActive(href, pathname);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  data-active={active}
+                  className={`relative z-10 px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150 whitespace-nowrap ${
+                    active
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         {/* Right: dark mode + auth */}

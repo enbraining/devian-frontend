@@ -33,7 +33,15 @@ export default function ArticleFeed() {
   const [total, setTotal] = useState(cached?.total ?? 0);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(!cached);
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "large">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "large">(() => {
+    if (typeof window === "undefined") return "grid";
+    return (localStorage.getItem("article-view") as "grid" | "list" | "large") ?? "grid";
+  });
+
+  function changeViewMode(mode: "grid" | "list" | "large") {
+    setViewMode(mode);
+    localStorage.setItem("article-view", mode);
+  }
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // 태그 목록 — 캐시 없을 때만 fetch
@@ -151,7 +159,7 @@ export default function ArticleFeed() {
               ] as const).map(({ mode, icon: Icon, label }) => (
                 <button
                   key={mode}
-                  onClick={() => setViewMode(mode)}
+                  onClick={() => changeViewMode(mode)}
                   className={`p-1.5 rounded-md transition-colors ${viewMode === mode ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
                   title={label}
                 >

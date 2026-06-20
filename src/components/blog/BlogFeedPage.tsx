@@ -17,7 +17,15 @@ export default function BlogFeedPage() {
   const [tab, setTab] = useState<Tab>(cached?.tab ?? "latest");
   const [posts, setPosts] = useState<PostSummary[]>(cached?.posts ?? []);
   const [loading, setLoading] = useState(!cached);
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "large">("list");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "large">(() => {
+    if (typeof window === "undefined") return "list";
+    return (localStorage.getItem("blog-view") as "grid" | "list" | "large") ?? "list";
+  });
+
+  function changeViewMode(mode: "grid" | "list" | "large") {
+    setViewMode(mode);
+    localStorage.setItem("blog-view", mode);
+  }
 
   const fetchPosts = useCallback(async (t: Tab) => {
     setLoading(true);
@@ -64,7 +72,7 @@ export default function BlogFeedPage() {
           ] as const).map(({ mode, icon: Icon, label }) => (
             <button
               key={mode}
-              onClick={() => setViewMode(mode)}
+              onClick={() => changeViewMode(mode)}
               className={`p-1.5 rounded-md transition-colors ${viewMode === mode ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
               title={label}
             >
