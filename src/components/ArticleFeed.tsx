@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { IconMailboxOff } from "@tabler/icons-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { IconMailboxOff, IconLoader2 } from "@tabler/icons-react";
 import { Article } from "@/lib/supabase";
 import ArticleCard from "./ArticleCard";
 import BlogFilter from "./BlogFilter";
@@ -21,6 +21,7 @@ export default function ArticleFeed() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/tags")
@@ -56,18 +57,38 @@ export default function ArticleFeed() {
     fetchArticles(selectedBlog, selectedTag, 1);
   }, [selectedBlog, selectedTag, fetchArticles]);
 
+  // IntersectionObserver: sentinel이 뷰포트에 들어오면 자동 로드
+  const hasMore = articles.length < total;
+  const hasMoreRef = useRef(hasMore);
+  const loadingRef = useRef(loading);
+  const pageRef = useRef(page);
+  hasMoreRef.current = hasMore;
+  loadingRef.current = loading;
+  pageRef.current = page;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreRef.current && !loadingRef.current) {
+          const next = pageRef.current + 1;
+          setPage(next);
+          fetchArticles(selectedBlog, selectedTag, next, true);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [selectedBlog, selectedTag, fetchArticles]);
+
   const handleBlogChange = (id: string) => {
     setSelectedBlog(id);
     setSelectedTag(null);
   };
-
-  const handleLoadMore = () => {
-    const next = page + 1;
-    setPage(next);
-    fetchArticles(selectedBlog, selectedTag, next, true);
-  };
-
-  const hasMore = articles.length < total;
 
   return (
     <div className="flex flex-col gap-5">
@@ -94,14 +115,24 @@ export default function ArticleFeed() {
             ))}
           </div>
 
+          {/* sentinel + 더 보기 버튼 */}
           {hasMore && (
-            <button
-              onClick={handleLoadMore}
-              disabled={loading}
-              className="self-center px-6 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-gray-400 transition-colors disabled:opacity-50"
-            >
-              {loading ? "불러오는 중..." : "더 보기"}
-            </button>
+            <div ref={sentinelRef} className="flex justify-center pt-2">
+              <button
+                onClick={() => {
+                  if (!loading) {
+                    const next = page + 1;
+                    setPage(next);
+                    fetchArticles(selectedBlog, selectedTag, next, true);
+                  }
+                }}
+                disabled={loading}
+                className="flex items-center gap-2 px-6 py-2 rounded-full border border-gray-200 dark:border-zinc-700 text-sm font-medium text-gray-600 dark:text-zinc-300 hover:border-gray-400 transition-colors disabled:opacity-60"
+              >
+                더 보기
+                {loading && <IconLoader2 size={14} stroke={2} className="animate-spin" />}
+              </button>
+            </div>
           )}
         </>
       )}
