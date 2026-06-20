@@ -55,6 +55,7 @@ export default function PostEditor({ authorId, initialData }: Props) {
   const [coverUrl, setCoverUrl] = useState(initialData?.cover_url ?? "");
   const [coverUploading, setCoverUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -101,6 +102,7 @@ export default function PostEditor({ authorId, initialData }: Props) {
   async function save(isPublished: boolean) {
     if (!title.trim() || !content.trim()) return;
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch("/api/blog/post", {
         method: "POST",
@@ -115,8 +117,14 @@ export default function PostEditor({ authorId, initialData }: Props) {
           author_id: authorId,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        setSaveError(data.error ?? `서버 오류 (${res.status})`);
+        return;
+      }
       if (data.slug) router.push(`/blog/${data.slug}`);
+    } catch {
+      setSaveError("네트워크 오류가 발생했습니다.");
     } finally {
       setSaving(false);
     }
@@ -159,7 +167,10 @@ export default function PostEditor({ authorId, initialData }: Props) {
             <IconEye size={14} stroke={1.5} /> 미리보기
           </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {saveError && (
+            <span className="text-xs text-red-500 dark:text-red-400">{saveError}</span>
+          )}
           <button
             onClick={() => save(false)}
             disabled={saving}
