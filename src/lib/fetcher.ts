@@ -7,6 +7,7 @@ import { autoTag } from "./tagger";
 type RssItem = {
   title?: string;
   link?: string;
+  id?: string;
   pubDate?: string;
   updated?: string;
   contentSnippet?: string;
@@ -19,9 +20,20 @@ type RssItem = {
 
 const parser = new Parser<Record<string, unknown>, RssItem>({
   customFields: {
-    item: ["media:content", "content:encoded", "content", "enclosure", "updated"],
+    item: ["media:content", "content:encoded", "content", "enclosure", "updated", "id"],
+  },
+  headers: {
+    Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
   },
 });
+
+// Atom <link rel="alternate" href="..."/> 은 rss-parser가 item.link로 못 읽는 경우가 있음
+// item.id(=<id> 태그)가 URL인 경우 fallback으로 사용
+function extractUrl(item: RssItem): string {
+  if (item.link) return item.link;
+  if (item.id?.startsWith("http")) return item.id;
+  return "";
+}
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().slice(0, 300);
@@ -59,7 +71,7 @@ async function fetchRssBlog(source: BlogSource): Promise<Omit<Article, "id" | "c
         return {
           blog_id: source.id,
           title: item.title ?? "제목 없음",
-          url: item.link ?? "",
+          url: extractUrl(item),
           published_at: item.pubDate
             ? new Date(item.pubDate).toISOString()
             : item.updated

@@ -4,7 +4,6 @@ export interface BlogSource {
   logoUrl: string;
   color: string;
   rssUrl?: string;
-  scrapeUrl?: string;
   type: "rss" | "scrape";
 }
 
@@ -19,14 +18,6 @@ export const BLOG_SOURCES: BlogSource[] = [
     logoUrl: favicon("toss.tech"),
     color: "#0064FF",
     rssUrl: "https://toss.tech/rss.xml",
-    type: "rss",
-  },
-  {
-    id: "kakao",
-    name: "카카오",
-    logoUrl: favicon("kakao.com"),
-    color: "#FEE500",
-    rssUrl: "https://kakao.com/tech/blog/rss",
     type: "rss",
   },
   {
@@ -70,43 +61,11 @@ export const BLOG_SOURCES: BlogSource[] = [
     type: "rss",
   },
   {
-    id: "kakaobank",
-    name: "카카오뱅크",
-    logoUrl: favicon("kakaobank.com"),
-    color: "#FEE500",
-    rssUrl: "https://kakaobank.com/story/rss",
-    type: "rss",
-  },
-  {
-    id: "krafton",
-    name: "크래프톤",
-    logoUrl: favicon("krafton.com"),
-    color: "#1A1A1A",
-    rssUrl: "https://www.krafton.com/blog/feed/",
-    type: "rss",
-  },
-  {
-    id: "netflix",
-    name: "넷플릭스",
-    logoUrl: favicon("netflix.com"),
-    color: "#E50914",
-    rssUrl: "https://netflixtechblog.com/feed",
-    type: "rss",
-  },
-  {
-    id: "29cm",
-    name: "29CM",
-    logoUrl: favicon("29cm.co.kr"),
-    color: "#1A1A1A",
-    rssUrl: "https://medium.com/feed/29cm",
-    type: "rss",
-  },
-  {
     id: "kurly",
     name: "컬리",
     logoUrl: favicon("kurly.com"),
     color: "#5F0080",
-    rssUrl: "https://helloworld.kurly.com/feed.xml",
+    rssUrl: "https://helloworld.kurly.com/rss.xml",
     type: "rss",
   },
   {
@@ -142,14 +101,6 @@ export const BLOG_SOURCES: BlogSource[] = [
     type: "rss",
   },
   {
-    id: "ab180",
-    name: "AB180",
-    logoUrl: favicon("ab180.co"),
-    color: "#6C63FF",
-    rssUrl: "https://engineering.ab180.co/rss.xml",
-    type: "rss",
-  },
-  {
     id: "watcha",
     name: "왓챠",
     logoUrl: favicon("watcha.com"),
@@ -166,11 +117,19 @@ export const BLOG_SOURCES: BlogSource[] = [
     type: "rss",
   },
   {
-    id: "kakaopaycorp",
-    name: "카카오페이",
-    logoUrl: favicon("kakaopay.com"),
-    color: "#006DFF",
-    rssUrl: "https://tech.kakaopay.com/rss",
+    id: "29cm",
+    name: "29CM",
+    logoUrl: favicon("29cm.co.kr"),
+    color: "#1A1A1A",
+    rssUrl: "https://medium.com/feed/29cm",
+    type: "rss",
+  },
+  {
+    id: "netflix",
+    name: "넷플릭스",
+    logoUrl: favicon("netflix.com"),
+    color: "#E50914",
+    rssUrl: "https://medium.com/feed/netflix-techblog",
     type: "rss",
   },
 ];
