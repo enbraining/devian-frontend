@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { IconMailboxOff, IconLoader2, IconLayoutGrid, IconLayoutList, IconLayoutRows, IconFilter } from "@tabler/icons-react";
+import { IconMailboxOff, IconLoader2, IconLayoutGrid, IconLayoutList, IconLayoutRows, IconFilter, IconX } from "@tabler/icons-react";
 import { ArticleCardSkeleton, ArticleCardListSkeleton, ArticleCardLargeSkeleton } from "./skeletons";
 import { Article } from "@/lib/supabase";
 import ArticleCard from "./ArticleCard";
@@ -134,27 +134,28 @@ export default function ArticleFeed() {
         <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
       </div>
 
-      {/* 모바일: 필터 버튼 + 토글 */}
-      <div className="sm:hidden flex flex-col gap-3">
-        <button
-          onClick={() => setFilterOpen((v) => !v)}
-          className={`flex items-center gap-2 self-start px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${
-            hasFilter
-              ? "border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900"
-              : "border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 bg-white dark:bg-zinc-900"
-          }`}
-        >
-          <IconFilter size={14} stroke={1.5} />
-          필터{hasFilter ? " ·" : ""}
-          {selectedBlog !== "all" && <span className="font-semibold">{selectedBlog}</span>}
-        </button>
-        {filterOpen && (
-          <div className="flex flex-col gap-3">
-            <BlogFilter selected={selectedBlog} onChange={handleBlogChange} />
-            <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
+      {/* 모바일 필터 모달 */}
+      {filterOpen && (
+        <div className="sm:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setFilterOpen(false)} />
+          <div className="relative bg-white dark:bg-zinc-950 rounded-t-2xl p-5 flex flex-col gap-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">필터</span>
+              <button onClick={() => setFilterOpen(false)} className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500">
+                <IconX size={14} stroke={2} />
+              </button>
+            </div>
+            <BlogFilter selected={selectedBlog} onChange={(id) => { handleBlogChange(id); }} />
+            <TagFilter tags={tags} selected={selectedTag} onChange={(t) => { setSelectedTag(t); }} />
+            <button
+              onClick={() => setFilterOpen(false)}
+              className="w-full py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold mt-1"
+            >
+              적용
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {initialLoad ? (
         viewMode === "grid" ? (
@@ -178,7 +179,20 @@ export default function ArticleFeed() {
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
+              <button
+                onClick={() => setFilterOpen(true)}
+                className={`sm:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${
+                  hasFilter
+                    ? "border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900"
+                    : "border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400"
+                }`}
+              >
+                <IconFilter size={11} stroke={1.5} />
+                필터{hasFilter ? " ✓" : ""}
+              </button>
+            </div>
             <div className="hidden sm:flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
               {([
                 { mode: "grid", icon: IconLayoutGrid, label: "그리드" },
