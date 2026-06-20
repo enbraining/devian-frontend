@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { title, content, excerpt, cover_url, is_published, tags = [], series_id, series_order, slug: existingSlug, author_id } = body;
+  const { title, content, cover_url, is_published, tags = [], series_id, series_order, slug: existingSlug, author_id } = body;
   if (!title || !content || !author_id) return Response.json({ error: "title, content, author_id required" }, { status: 400 });
 
   const slug = existingSlug ?? makeSlug(title);
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       slug,
       title,
       content,
-      excerpt: excerpt || content.slice(0, 200).replace(/[#*`]/g, "").trim(),
+      excerpt: content.slice(0, 200).replace(/[#*`]/g, "").trim(),
       cover_url: cover_url || undefined,
       author_id,
       is_published: !!is_published,
