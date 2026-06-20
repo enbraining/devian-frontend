@@ -24,8 +24,15 @@ export default function PostCard({ post, layout = "list" }: Props) {
 
   const authorRow = (size: number = 16) => (
     <div className="flex items-center gap-1.5">
-      {post.author.avatar_url && (
-        <Image src={post.author.avatar_url} alt={post.author.name ?? post.author.username} width={size} height={size} className="rounded-full" />
+      {post.author.avatar_url ? (
+        <Image src={post.author.avatar_url} alt={post.author.name ?? post.author.username} width={size} height={size} className="rounded-full flex-shrink-0" />
+      ) : (
+        <span
+          className="rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-gray-600 dark:text-zinc-300 font-semibold flex-shrink-0 uppercase"
+          style={{ width: size, height: size, fontSize: size * 0.5 }}
+        >
+          {(post.author.name ?? post.author.username)[0]}
+        </span>
       )}
       <span className="text-xs font-medium text-gray-500 dark:text-zinc-400">{post.author.name ?? post.author.username}</span>
       {timeAgo && (

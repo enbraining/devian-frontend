@@ -18,8 +18,11 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8">
         {/* Profile */}
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-zinc-800 flex-shrink-0">
-            {user.avatar_url && <Image src={user.avatar_url} alt={user.name ?? user.username} width={64} height={64} />}
+          <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-zinc-800 flex-shrink-0 flex items-center justify-center">
+            {user.avatar_url
+              ? <Image src={user.avatar_url} alt={user.name ?? user.username} width={64} height={64} />
+              : <span className="text-2xl font-bold text-gray-500 dark:text-zinc-400 uppercase">{(user.name ?? user.username)[0]}</span>
+            }
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3">

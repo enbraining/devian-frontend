@@ -40,9 +40,13 @@ export default function PostDetailComponent({ post }: { post: PostDetail }) {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">{post.title}</h1>
 
         <div className="flex items-center gap-2.5">
-          <Link href={`/blog/u/${post.author.username}`}>
-            {post.author.avatar_url && (
+          <Link href={`/blog/u/${post.author.username}`} className="flex-shrink-0">
+            {post.author.avatar_url ? (
               <Image src={post.author.avatar_url} alt={post.author.name ?? post.author.username} width={32} height={32} className="rounded-full" />
+            ) : (
+              <span className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-sm font-semibold text-gray-600 dark:text-zinc-300 uppercase">
+                {(post.author.name ?? post.author.username)[0]}
+              </span>
             )}
           </Link>
           <div>
