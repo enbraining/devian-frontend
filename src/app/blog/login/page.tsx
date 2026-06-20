@@ -11,8 +11,10 @@ export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -21,8 +23,13 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
+    if (mode === "signup" && password !== confirm) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    setLoading(true);
     const supabase = createClient();
 
     if (mode === "signup") {
@@ -36,7 +43,6 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      // 가입 후 blog_users 동기화
       await fetch("/api/blog/sync-user", { method: "POST" });
       setDone(true);
     } else {
@@ -51,6 +57,40 @@ export default function LoginPage() {
     }
     setLoading(false);
   }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError("");
+    setConfirm("");
+    setShowConfirm(false);
+  }
+
+  const pwInput = (
+    value: string,
+    onChange: (v: string) => void,
+    show: boolean,
+    toggleShow: () => void,
+    placeholder: string
+  ) => (
+    <div className="relative">
+      <input
+        type={show ? "text" : "password"}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+        minLength={6}
+        className="w-full px-4 py-3 pr-11 rounded-xl border border-gray-200 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-zinc-600 outline-none focus:border-gray-400 dark:focus:border-zinc-500 transition-colors"
+      />
+      <button
+        type="button"
+        onClick={toggleShow}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 dark:text-zinc-600 hover:text-gray-500 dark:hover:text-zinc-400 transition-colors"
+      >
+        {show ? <IconEyeOff size={16} stroke={1.5} /> : <IconEye size={16} stroke={1.5} />}
+      </button>
+    </div>
+  );
 
   if (done) {
     return (
@@ -95,24 +135,8 @@ export default function LoginPage() {
             required
             className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-zinc-600 outline-none focus:border-gray-400 dark:focus:border-zinc-500 transition-colors"
           />
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="비밀번호"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-3 pr-11 rounded-xl border border-gray-200 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-zinc-600 outline-none focus:border-gray-400 dark:focus:border-zinc-500 transition-colors"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 dark:text-zinc-600 hover:text-gray-500 dark:hover:text-zinc-400 transition-colors"
-            >
-              {showPassword ? <IconEyeOff size={16} stroke={1.5} /> : <IconEye size={16} stroke={1.5} />}
-            </button>
-          </div>
+          {pwInput(password, setPassword, showPassword, () => setShowPassword((v) => !v), "비밀번호")}
+          {mode === "signup" && pwInput(confirm, setConfirm, showConfirm, () => setShowConfirm((v) => !v), "비밀번호 확인")}
 
           {error && <p className="text-xs text-red-500">{error}</p>}
 
@@ -129,13 +153,13 @@ export default function LoginPage() {
         <p className="text-center text-sm text-gray-400 dark:text-zinc-500">
           {mode === "login" ? (
             <>계정이 없으신가요?{" "}
-              <button onClick={() => { setMode("signup"); setError(""); }} className="text-gray-700 dark:text-zinc-300 font-medium hover:underline">
+              <button onClick={() => switchMode("signup")} className="text-gray-700 dark:text-zinc-300 font-medium hover:underline">
                 회원가입
               </button>
             </>
           ) : (
             <>이미 계정이 있으신가요?{" "}
-              <button onClick={() => { setMode("login"); setError(""); }} className="text-gray-700 dark:text-zinc-300 font-medium hover:underline">
+              <button onClick={() => switchMode("login")} className="text-gray-700 dark:text-zinc-300 font-medium hover:underline">
                 로그인
               </button>
             </>
