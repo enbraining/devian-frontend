@@ -124,7 +124,9 @@ export default function PostEditor({ authorId, initialData }: Props) {
 
   const editorTheme = EditorView.theme({
     "&": { background: "transparent" },
-    ".cm-content": { padding: "0", fontFamily: "inherit", fontSize: "15px", lineHeight: "1.8" },
+    "&.cm-focused": { outline: "none !important" },
+    ".cm-content": { padding: "0", fontFamily: "inherit", fontSize: "15px", lineHeight: "1.8", caretColor: "auto" },
+    ".cm-content:focus": { outline: "none" },
     ".cm-line": { padding: "0" },
     ".cm-focused": { outline: "none" },
     ".cm-scroller": { fontFamily: "inherit" },
@@ -289,7 +291,7 @@ export default function PostEditor({ authorId, initialData }: Props) {
                 basicSetup={{ lineNumbers: false, foldGutter: false, highlightActiveLine: false, syntaxHighlighting: true }}
                 placeholder="본문을 입력하세요 (Markdown 지원)"
                 height="100%"
-                className="text-gray-900 dark:text-white h-full"
+                className="text-gray-900 dark:text-white h-full [&_.cm-editor]:outline-none [&_.cm-editor.cm-focused]:outline-none"
               />
             )}
           </div>
