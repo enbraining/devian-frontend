@@ -151,7 +151,7 @@ export default function ArticleFeed() {
         <>
           <div className="flex items-center justify-between">
             <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
-            <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
+            <div className="hidden sm:flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
               {([
                 { mode: "grid", icon: IconLayoutGrid, label: "그리드" },
                 { mode: "list", icon: IconLayoutList, label: "리스트" },
