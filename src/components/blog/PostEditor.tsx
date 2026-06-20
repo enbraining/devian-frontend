@@ -4,10 +4,10 @@ import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
-  IconX, IconLoader2, IconPhoto, IconUpload,
+  IconX, IconLoader2, IconPhoto,
   IconBold, IconItalic, IconCode, IconLink,
   IconH1, IconH2, IconList, IconBlockquote,
-  IconEye, IconEdit,
+  IconEye, IconEdit, IconArrowLeft,
 } from "@tabler/icons-react";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -149,7 +149,15 @@ export default function PostEditor({ authorId, initialData }: Props) {
     <div className="flex flex-col h-screen">
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+            title="뒤로 가기"
+          >
+            <IconArrowLeft size={16} stroke={1.5} />
+          </button>
+          <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700" />
           <button
             onClick={() => setPreview(false)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
