@@ -18,3 +18,24 @@ alter table articles enable row level security;
 
 create policy "public read" on articles
   for select using (true);
+
+-- Jobs
+create table if not exists jobs (
+  id uuid default gen_random_uuid() primary key,
+  company_id text not null,
+  title text not null,
+  url text not null unique,
+  department text,
+  location text,
+  employment_type text,
+  posted_at timestamptz,
+  created_at timestamptz default now()
+);
+
+create index if not exists jobs_company_id_idx on jobs(company_id);
+create index if not exists jobs_posted_at_idx on jobs(posted_at desc nulls last);
+
+alter table jobs enable row level security;
+
+create policy "public read jobs" on jobs
+  for select using (true);

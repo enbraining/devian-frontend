@@ -9,7 +9,11 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger fetch
+      - name: Fetch articles
         run: |
           curl -sf -X GET "${{ secrets.APP_URL }}/api/fetch-articles" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+      - name: Fetch jobs
+        run: |
+          curl -sf -X GET "${{ secrets.APP_URL }}/api/fetch-jobs" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
