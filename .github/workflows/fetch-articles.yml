@@ -1,0 +1,15 @@
+name: Fetch Articles
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger fetch
+        run: |
+          curl -sf -X GET "${{ secrets.APP_URL }}/api/fetch-articles" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
