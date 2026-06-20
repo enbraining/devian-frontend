@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { IconMailboxOff, IconLoader2 } from "@tabler/icons-react";
+import { IconMailboxOff, IconLoader2, IconLayoutGrid, IconLayoutList } from "@tabler/icons-react";
 import { Article } from "@/lib/supabase";
 import ArticleCard from "./ArticleCard";
 import BlogFilter from "./BlogFilter";
@@ -32,6 +32,7 @@ export default function ArticleFeed() {
   const [total, setTotal] = useState(cached?.total ?? 0);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(!cached);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // 태그 목록 — 캐시 없을 때만 fetch
@@ -131,10 +132,28 @@ export default function ArticleFeed() {
         </div>
       ) : (
         <>
-          <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
+            <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                title="그리드"
+              >
+                <IconLayoutGrid size={14} stroke={1.5} />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                title="리스트"
+              >
+                <IconLayoutList size={14} stroke={1.5} />
+              </button>
+            </div>
+          </div>
+          <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-2"}>
             {articles.map((article) => (
-              <ArticleCard key={article.id ?? article.url} article={article} />
+              <ArticleCard key={article.id ?? article.url} article={article} layout={viewMode} />
             ))}
           </div>
           {hasMore && (

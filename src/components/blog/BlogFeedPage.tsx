@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import PostCard from "./PostCard";
 import type { PostSummary } from "@/lib/blog-db";
 import { cacheGet, cacheSet } from "@/lib/client-cache";
+import { IconLayoutGrid, IconLayoutList } from "@tabler/icons-react";
 
 type Tab = "latest" | "popular";
 
@@ -15,6 +16,7 @@ export default function BlogFeedPage() {
   const [tab, setTab] = useState<Tab>(cached?.tab ?? "latest");
   const [posts, setPosts] = useState<PostSummary[]>(cached?.posts ?? []);
   const [loading, setLoading] = useState(!cached);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
   const fetchPosts = useCallback(async (t: Tab) => {
     setLoading(true);
@@ -37,7 +39,7 @@ export default function BlogFeedPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <div className="flex gap-1 bg-gray-100 dark:bg-zinc-900 rounded-full px-1 py-1">
           {(["latest", "popular"] as Tab[]).map((key) => (
             <button
@@ -53,6 +55,22 @@ export default function BlogFeedPage() {
             </button>
           ))}
         </div>
+        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+            title="그리드"
+          >
+            <IconLayoutGrid size={14} stroke={1.5} />
+          </button>
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+            title="리스트"
+          >
+            <IconLayoutList size={14} stroke={1.5} />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -66,8 +84,8 @@ export default function BlogFeedPage() {
           <p className="text-sm">아직 게시글이 없습니다.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {posts.map((post) => <PostCard key={post.id} post={post} />)}
+        <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-4"}>
+          {posts.map((post) => <PostCard key={post.id} post={post} layout={viewMode} />)}
         </div>
       )}
     </div>
