@@ -6,7 +6,7 @@ import { IconBrandGithub } from "@tabler/icons-react";
 
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
-  const handle = username.startsWith("%40") ? decodeURIComponent(username).slice(1) : username.replace(/^@/, "");
+  const handle = username;
 
   const user = await getUserByUsername(handle);
   if (!user) notFound();

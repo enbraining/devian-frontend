@@ -1,46 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useSession } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import rehypeRaw from "rehype-raw";
 import type { PostDetail } from "@/lib/blog-db";
-import { IconHeart, IconHeartFilled, IconMessage, IconPencil } from "@tabler/icons-react";
+import { IconHeart, IconHeartFilled, IconMessage } from "@tabler/icons-react";
 import CommentSection from "./CommentSection";
 import "highlight.js/styles/github-dark.css";
 
 export default function PostDetailComponent({ post }: { post: PostDetail }) {
-  const { data: session } = useSession();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.like_count);
   const [showComments, setShowComments] = useState(false);
 
-  const isAuthor = session?.user?.id === post.author.username;
-
   async function handleLike() {
-    if (!session) return;
-    const res = await fetch("/api/blog/like", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ postId: post.id }),
-    });
-    const data = await res.json();
-    setLiked(data.liked);
-    setLikeCount((c) => c + (data.liked ? 1 : -1));
+    setLiked((v) => !v);
+    setLikeCount((c) => c + (liked ? -1 : 1));
   }
 
   return (
     <article className="flex flex-col gap-8">
       {/* Header */}
       <header className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex gap-1.5 flex-wrap">
           {post.tags.map((tag) => (
             <span key={tag.slug} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs text-gray-500 dark:text-zinc-400">
               {tag.name}
@@ -50,29 +39,20 @@ export default function PostDetailComponent({ post }: { post: PostDetail }) {
 
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">{post.title}</h1>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Link href={`/blog/@${post.author.username}`}>
-              {post.author.avatar_url && (
-                <Image src={post.author.avatar_url} alt={post.author.name ?? post.author.username} width={32} height={32} className="rounded-full" />
-              )}
+        <div className="flex items-center gap-2.5">
+          <Link href={`/blog/u/${post.author.username}`}>
+            {post.author.avatar_url && (
+              <Image src={post.author.avatar_url} alt={post.author.name ?? post.author.username} width={32} height={32} className="rounded-full" />
+            )}
+          </Link>
+          <div>
+            <Link href={`/blog/u/${post.author.username}`} className="text-sm font-medium text-gray-700 dark:text-zinc-300 hover:underline">
+              {post.author.name ?? post.author.username}
             </Link>
-            <div>
-              <Link href={`/blog/@${post.author.username}`} className="text-sm font-medium text-gray-700 dark:text-zinc-300 hover:underline">
-                {post.author.name ?? post.author.username}
-              </Link>
-              <p className="text-xs text-gray-400 dark:text-zinc-500">
-                {post.published_at && formatDistanceToNow(new Date(post.published_at), { addSuffix: true, locale: ko })}
-              </p>
-            </div>
+            <p className="text-xs text-gray-400 dark:text-zinc-500">
+              {post.published_at && formatDistanceToNow(new Date(post.published_at), { addSuffix: true, locale: ko })}
+            </p>
           </div>
-
-          {isAuthor && (
-            <Link href={`/blog/${post.slug}/edit`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 dark:hover:text-zinc-300 transition-colors">
-              <IconPencil size={14} stroke={1.5} />
-              수정
-            </Link>
-          )}
         </div>
       </header>
 
@@ -115,7 +95,6 @@ export default function PostDetailComponent({ post }: { post: PostDetail }) {
         </button>
       </div>
 
-      {/* Comments */}
       {showComments && <CommentSection postId={post.id} />}
     </article>
   );

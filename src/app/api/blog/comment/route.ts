@@ -1,6 +1,4 @@
 import { addComment, getComments } from "@/lib/blog-db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -12,12 +10,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { postId, content, parentId } = await request.json();
-  if (!postId || !content) return Response.json({ error: "postId and content required" }, { status: 400 });
-
-  const id = await addComment(postId, session.user.id, content, parentId);
+  const { postId, content, parentId, author_id } = await request.json();
+  if (!postId || !content || !author_id) return Response.json({ error: "postId, content, author_id required" }, { status: 400 });
+  const id = await addComment(postId, author_id, content, parentId);
   return Response.json({ id });
 }

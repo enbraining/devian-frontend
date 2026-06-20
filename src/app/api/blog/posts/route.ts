@@ -1,6 +1,4 @@
-import { getLatestPosts, getPopularPosts, getFollowingPosts } from "@/lib/blog-db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getLatestPosts, getPopularPosts } from "@/lib/blog-db";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -8,16 +6,9 @@ export async function GET(request: NextRequest) {
   const tab = searchParams.get("tab") ?? "latest";
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
 
-  let posts;
-  if (tab === "popular") {
-    posts = await getPopularPosts(page);
-  } else if (tab === "following") {
-    const session = await getServerSession(authOptions);
-    if (!session) return Response.json({ posts: [] });
-    posts = await getFollowingPosts(session.user.id, page);
-  } else {
-    posts = await getLatestPosts(page);
-  }
+  const posts = tab === "popular"
+    ? await getPopularPosts(page)
+    : await getLatestPosts(page);
 
   return Response.json({ posts });
 }

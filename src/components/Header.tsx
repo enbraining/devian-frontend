@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { IconSun, IconMoon } from "@tabler/icons-react";
-import { useSession, signIn, signOut } from "next-auth/react";
-import Image from "next/image";
 
 const NAV = [
   { href: "/", label: "아티클" },
@@ -21,7 +19,6 @@ function isActive(href: string, pathname: string) {
 export default function Header() {
   const [dark, setDark] = useState(false);
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -71,8 +68,8 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Right: dark mode + auth */}
-        <div className="justify-self-end flex items-center gap-2">
+        {/* Right: dark mode */}
+        <div className="justify-self-end">
           <button
             onClick={toggleDark}
             aria-label="다크모드 전환"
@@ -80,45 +77,6 @@ export default function Header() {
           >
             {dark ? <IconSun size={16} stroke={1.5} /> : <IconMoon size={16} stroke={1.5} />}
           </button>
-
-          {session ? (
-            <div className="relative group">
-              <button className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-gray-200 dark:ring-zinc-700">
-                {session.user.image ? (
-                  <Image src={session.user.image} alt={session.user.name ?? ""} width={32} height={32} />
-                ) : (
-                  <div className="w-full h-full bg-gray-300 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold">
-                    {session.user.name?.[0]?.toUpperCase()}
-                  </div>
-                )}
-              </button>
-              <div className="absolute right-0 top-10 w-44 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
-                <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800">
-                  대시보드
-                </Link>
-                <Link href="/blog/write" className="block px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800">
-                  글쓰기
-                </Link>
-                <Link href={`/blog/@${(session.user as { username?: string }).username ?? ""}`} className="block px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800">
-                  내 블로그
-                </Link>
-                <hr className="my-1 border-gray-100 dark:border-zinc-800" />
-                <button
-                  onClick={() => signOut()}
-                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-zinc-800"
-                >
-                  로그아웃
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => signIn("github")}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-80 transition-opacity"
-            >
-              로그인
-            </button>
-          )}
         </div>
       </div>
     </header>
