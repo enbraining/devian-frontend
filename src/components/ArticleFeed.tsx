@@ -179,8 +179,8 @@ export default function ArticleFeed() {
       ) : (
         <>
           <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
             <div className="flex items-center gap-2">
-              <p className="text-xs text-gray-400">총 {total.toLocaleString()}개</p>
               <button
                 onClick={() => setFilterOpen(true)}
                 className={`sm:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${
@@ -192,7 +192,6 @@ export default function ArticleFeed() {
                 <IconFilter size={11} stroke={1.5} />
                 필터{hasFilter ? " ✓" : ""}
               </button>
-            </div>
             <div className="hidden sm:flex items-center gap-0.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-0.5">
               {([
                 { mode: "grid", icon: IconLayoutGrid, label: "그리드" },
@@ -208,6 +207,7 @@ export default function ArticleFeed() {
                   <Icon size={14} stroke={1.5} />
                 </button>
               ))}
+            </div>
             </div>
           </div>
           <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"}>
