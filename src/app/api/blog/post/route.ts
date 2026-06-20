@@ -1,4 +1,5 @@
 import { upsertPost, deletePost, makeSlug } from "@/lib/blog-db";
+import { getUser, syncBlogUser } from "@/lib/auth-server";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -6,6 +7,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, content, cover_url, is_published, tags = [], series_id, series_order, slug: existingSlug, author_id } = body;
     if (!title || !content || !author_id) return Response.json({ error: "title, content, author_id required" }, { status: 400 });
+
+    // blog_users 레코드 보장 (테이블 생성 전 가입한 유저 대비)
+    const user = await getUser();
+    if (user && user.id === author_id && user.email) {
+      await syncBlogUser(user.id, user.email);
+    }
 
     const slug = existingSlug ?? makeSlug(title);
 
